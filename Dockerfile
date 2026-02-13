@@ -1,6 +1,6 @@
 FROM node:20
 
-# Install dependensi sistem yang dibutuhkan OpenClaw
+# Install dependensi sistem
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -8,14 +8,14 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install OpenClaw Gateway secara global
-RUN npm install -g @openclaw/gateway
+# Install OpenClaw langsung dari GitHub (karena tidak ada di npm)
+RUN npm install -g https://github.com/openclaw/openclaw
 
 # Tentukan folder kerja
 WORKDIR /app
 
-# Buka port 8080 untuk akses (opsional)
+# Buka port untuk gateway
 EXPOSE 8080
 
-# Jalankan gateway OpenClaw dalam mode foreground biar Fly.io bisa baca lognya
+# Jalankan gateway OpenClaw
 CMD ["openclaw", "gateway", "start", "--foreground"]
