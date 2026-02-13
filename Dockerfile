@@ -1,7 +1,7 @@
-# 1. Pakai Node.js 22 sesuai syarat package.json
+# 1. Pakai Node.js 22 sesuai syarat OpenClaw terbaru
 FROM node:22-bookworm
 
-# 2. Install dependensi sistem untuk kompilasi modul native (WAJIB)
+# 2. Install dependensi sistem untuk kompilasi modul native
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -11,26 +11,25 @@ RUN apt-get update && apt-get install -y \
     bash \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. Setup pnpm versi 10 (sesuai packageManager di package.json)
+# 3. Install pnpm versi 10 secara global (Solusi untuk error 'pnpm not found')
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 
-# 4. Ambil kode sumber
+# 4. Ambil kode sumber dari GitHub
 WORKDIR /opt/openclaw
 RUN git clone https://github.com/openclaw/openclaw.git .
 
-# 5. Install & Build (Jalur pnpm agar sesuai dengan hanyaBuiltDependencies)
-# --frozen-lockfile memastikan instalasi sesuai dengan versi developer
+# 5. Install & Build menggunakan pnpm
 RUN pnpm install --frozen-lockfile
 RUN pnpm run build
 
-# 6. Registrasikan perintah 'openclaw' ke sistem secara global
+# 6. Registrasikan perintah 'openclaw' agar bisa dipanggil sistem
 RUN pnpm link --global
 
-# 7. Setup folder kerja aplikasi (tempat simpan memori/script)
+# 7. Setup folder kerja (tempat simpan memori & script kamu)
 WORKDIR /app
 
 # 8. Jalankan OpenClaw Gateway
-# --foreground agar Fly.io bisa terus memantau prosesnya
+# --foreground agar Fly.io bisa terus memantau statusnya
 CMD ["openclaw", "gateway", "start", "--foreground"]
